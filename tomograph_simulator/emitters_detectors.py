@@ -47,10 +47,18 @@ class EmittersDetectors:
         detectors_y = self._height - emitters_y
 
         return np.stack((emitters_x, emitters_y), axis=-1), np.stack((detectors_x, detectors_y), axis=-1)
+    
+
+    def _update_positions(self) -> None:
+        """Updates emitters/detectors positions (rotates them by alpha)
+        """
+        self._angles += self._alpha
+
+        self._emitters, self._detectors = self._initialize_positions_ellipse()
 
 
 if __name__ == "__main__":
-    emitter = EmittersDetectors(72, 5, (100, 200))
+    emitter = EmittersDetectors(72, 5, 90, (100, 200))
     e_x, e_y = emitter._emitters[:, 0], emitter._emitters[:, 1]
     d_x, d_y = emitter._detectors[:, 0], emitter._detectors[:, 1]
     plt.scatter(e_x, e_y)
