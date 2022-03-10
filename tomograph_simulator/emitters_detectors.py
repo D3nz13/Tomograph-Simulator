@@ -3,11 +3,12 @@ import matplotlib.pyplot as plt
 
 
 class EmittersDetectors:
-    def __init__(self, n: int, alpha: float, img_shape: tuple, ellipse = True) -> None:
+    def __init__(self, n: int, alpha: float, span: float, img_shape: tuple, ellipse = True) -> None:
         """
         Args:
             n (int): number of emitters/detectors
-            alpha (float): the angle between another emitters/detectors (in degrees)
+            alpha (float): the angle difference between each rotation (in degrees)
+            span (float): the range within the emitters/detectors are positioned (in degrees)
             img_shape (tuple): the image shape (the image should be grayscale)
         """
 
@@ -19,8 +20,9 @@ class EmittersDetectors:
         self._height = h
         self._width = w
         self._alpha = alpha
+        self._span = span
         self._radius = max(self._height//2, self._width//2)
-        
+
         if ellipse:
             self._emitters, self._detectors = self._initialize_positions_ellipse()
         else:
@@ -36,7 +38,7 @@ class EmittersDetectors:
         middle_h = int(self._height/2)
         middle_w = int(self._width/2)
 
-        angles = np.arange(0, self._num*self._alpha, self._alpha)
+        angles = np.arange(0, self._span, self._span/self._num)
 
         emitters_x = ((middle_w * np.cos(np.radians(angles))) + middle_w).astype(int)
         emitters_y = ((middle_h * np.sin(np.radians(angles))) + middle_h).astype(int)
