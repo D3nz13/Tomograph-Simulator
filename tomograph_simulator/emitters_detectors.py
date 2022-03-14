@@ -123,11 +123,7 @@ class EmittersDetectors:
         for i in range(self._iterations):
             print(f"Iteration: {i+1}")
 
-            row = np.array(self._create_sinogram_row())
-            normalized_row = (row - np.min(row))/(np.max(row) - np.min(row))
-
-            # sinogram_rows.append(self._create_sinogram_row())
-            sinogram_rows.append(normalized_row)
+            sinogram_rows.append(self._create_sinogram_row())
             self._update_positions()
         
         return np.array(sinogram_rows)
