@@ -22,8 +22,10 @@ iterations = st.number_input('Number of iterations', 1, 100, 60)
 
 
 if st.button('Run simulation', 'btn-1'):
-    emitter = EmittersDetectors(num_of_emitters, alpha_angle, span, iterations, image=cv2.imread(filename, cv2.IMREAD_GRAYSCALE))
-    sinogram = emitter.create_sinogram()
+    sinogram = None
+    with st.spinner("Simulation is running..."):
+        emitter = EmittersDetectors(num_of_emitters, alpha_angle, span, iterations, image=cv2.imread(filename, cv2.IMREAD_GRAYSCALE))
+        sinogram = emitter.create_sinogram()
     fig, ax = plt.subplots()
     ax.imshow(sinogram, cmap="gray")
     st.write('## Sinogram')
