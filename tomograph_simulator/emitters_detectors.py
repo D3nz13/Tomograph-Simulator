@@ -7,7 +7,7 @@ from helpers import read_pixels_on_a_line
 
 
 class EmittersDetectors:
-    def __init__(self, n: int, alpha: float, span: float, iterations: int, image: np.array) -> None:
+    def __init__(self, n: int, alpha: float, span: float, iterations: int, image: np.ndarray) -> None:
         """
         Args:
             n (int): number of emitters/detectors
@@ -89,7 +89,7 @@ class EmittersDetectors:
         return lines
     
 
-    def _calculate_avg_pixels_for_a_line(self, line: np.array) -> float:
+    def _calculate_avg_pixels_for_a_line(self, line: np.ndarray) -> float:
         """Calculates average value of pixels along a line
 
         Args:
@@ -112,7 +112,7 @@ class EmittersDetectors:
         return [self._calculate_avg_pixels_for_a_line(line) for line in lines]
     
 
-    def create_sinogram(self) -> np.array:
+    def create_sinogram(self) -> np.ndarray:
         """Creates normalized sinogram
 
         Returns:
@@ -121,23 +121,52 @@ class EmittersDetectors:
         sinogram_rows = []
 
         for i in range(self._iterations):
-            print(f"Iteration: {i+1}")
+            # print(f"Iteration: {i+1}")
 
-            row = np.array(self._create_sinogram_row())
-            normalized_row = (row - np.min(row))/(np.max(row) - np.min(row))
-
-            # sinogram_rows.append(self._create_sinogram_row())
-            sinogram_rows.append(normalized_row)
+            sinogram_rows.append(self._create_sinogram_row())
             self._update_positions()
         
         return np.array(sinogram_rows)
+    
+
+    def _reverse_sinogram(self, sinogram: np.ndarray) -> np.ndarray:
+        """Create image reconstruction from a sinogram.
+
+        Args:
+            sinogram (np.ndarray): a sinogram that will be used to reconstruct the image
+
+        Returns:
+            np.ndarray: the reconstructed image
+        """
+        result = np.zeros_like(self._img, dtype=float)
+
+        self._emitters, self._detectors = self._initialize_positions_ellipse()
+
+        for iteration in range(self._iterations):
+            # print(iteration)
+
+            for idx, (emitter, detector) in enumerate(zip(self._emitters, self._detectors)):
+                line = bresenham(emitter, detector)
+
+                for pos_x, pos_y in line:
+                    result[pos_x, pos_y] += sinogram[iteration, idx]
+
+            self._update_positions()
+        
+
+        return result.T
+
 
 
 if __name__ == "__main__":
-    sample_file_path = "./images/SADDLE_PE.jpg"
-    emitter = EmittersDetectors(n=50, alpha=6, span=30, iterations=60, image=cv2.imread(sample_file_path, cv2.IMREAD_GRAYSCALE))
+    sample_file_path = "./images/Kwadraty2.jpg"
+    emitter = EmittersDetectors(n=120, alpha=2, span=120, iterations=180, image=cv2.imread(sample_file_path, cv2.IMREAD_GRAYSCALE))
     sinogram = emitter.create_sinogram()
+    reconstruction = emitter._reverse_sinogram(sinogram)
 
+    plt.subplot(1, 2, 1)
     plt.imshow(sinogram, cmap='gray')
+    plt.subplot(1, 2, 2)
+    plt.imshow(reconstruction, cmap='gray')
     plt.show()
     
