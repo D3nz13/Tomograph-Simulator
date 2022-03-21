@@ -155,11 +155,11 @@ class EmittersDetectors:
 
                 for pos_x, pos_y in line:
                     result[pos_x, pos_y] += sinogram[iteration, idx]
-                
-                cv2.imwrite(f"{parent_path}/{iteration+1:03d}.jpg", result)
+
+            normalized_result = 255*(result - np.min(result))/(np.max(result) - np.min(result))
+            cv2.imwrite(f"{parent_path}/{iteration+1:03d}.jpg", normalized_result.T)
 
             self._update_positions()
-        
 
         return result.T
 
@@ -167,7 +167,7 @@ class EmittersDetectors:
 
 if __name__ == "__main__":
     sample_file_path = "../images/Kwadraty2.jpg"
-    emitter = EmittersDetectors(n=50, alpha=2, span=120, iterations=5, image=cv2.imread(sample_file_path, cv2.IMREAD_GRAYSCALE))
+    emitter = EmittersDetectors(n=100, alpha=2, span=120, iterations=int(360/2), image=cv2.imread(sample_file_path, cv2.IMREAD_GRAYSCALE))
     sinogram = emitter.create_sinogram()
     reconstruction = emitter._reverse_sinogram(sinogram)
 
