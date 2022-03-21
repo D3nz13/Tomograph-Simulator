@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import os
 
 from bresenham import bresenham
 from helpers import read_pixels_on_a_line
@@ -136,6 +137,14 @@ class EmittersDetectors:
         Returns:
             np.ndarray: the reconstructed image
         """
+        parent_path = "../results"
+
+        if not os.path.isdir(parent_path):  # creating a directory for saving the results
+            os.mkdir(parent_path)
+        
+        for file in os.listdir(parent_path):  # clearing the directory
+            os.remove(f"{parent_path}/{file}")
+
         result = np.zeros_like(self._img, dtype=float)
 
         self._emitters, self._detectors = self._initialize_positions_ellipse()
@@ -146,6 +155,8 @@ class EmittersDetectors:
 
                 for pos_x, pos_y in line:
                     result[pos_x, pos_y] += sinogram[iteration, idx]
+                
+                cv2.imwrite(f"{parent_path}/{iteration+1:03d}.jpg", result)
 
             self._update_positions()
         
@@ -155,8 +166,8 @@ class EmittersDetectors:
 
 
 if __name__ == "__main__":
-    sample_file_path = "./images/Kwadraty2.jpg"
-    emitter = EmittersDetectors(n=120, alpha=2, span=120, iterations=180, image=cv2.imread(sample_file_path, cv2.IMREAD_GRAYSCALE))
+    sample_file_path = "../images/Kwadraty2.jpg"
+    emitter = EmittersDetectors(n=50, alpha=2, span=120, iterations=5, image=cv2.imread(sample_file_path, cv2.IMREAD_GRAYSCALE))
     sinogram = emitter.create_sinogram()
     reconstruction = emitter._reverse_sinogram(sinogram)
 
