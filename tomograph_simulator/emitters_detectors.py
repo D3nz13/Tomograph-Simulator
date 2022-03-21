@@ -120,9 +120,7 @@ class EmittersDetectors:
         """
         sinogram_rows = []
 
-        for i in range(self._iterations):
-            # print(f"Iteration: {i+1}")
-
+        for _ in range(self._iterations):
             sinogram_rows.append(self._create_sinogram_row())
             self._update_positions()
         
@@ -143,8 +141,6 @@ class EmittersDetectors:
         self._emitters, self._detectors = self._initialize_positions_ellipse()
 
         for iteration in range(self._iterations):
-            # print(iteration)
-
             for idx, (emitter, detector) in enumerate(zip(self._emitters, self._detectors)):
                 line = bresenham(emitter, detector)
 
