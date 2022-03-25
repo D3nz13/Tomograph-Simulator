@@ -34,6 +34,7 @@ def save_as_dicom(file_name, img, patient_data):
     ds.PatientName = patient_data["PatientName"]
     ds.PatientID = patient_data["PatientID"]
     ds.ImageComments = patient_data["ImageComments"]
+    # TODO Date Of examination and more patient info
     
 
     ds.Modality = "CT"
