@@ -14,6 +14,7 @@ filename = form1.selectbox('Filename', files)
 num_of_emitters = form1.number_input('Number of emitters', 1, 150, 50)
 alpha_angle = form1.number_input('Angle', 1, 20, 1)
 span = form1.number_input('Span', 1, 180, 15)
+filtered = form1.checkbox("Filter", False)
 full_rotation = form1.checkbox("Full rotation (360 degrees)", True)
 
 if not full_rotation:
@@ -33,9 +34,9 @@ submit_button1 = form1.form_submit_button(label='Run simulation')
 if submit_button1:
     with st.spinner("Simulation is running..."):
         image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-        emitter = EmittersDetectors(num_of_emitters, alpha_angle, span, iterations, image)
+        emitter = EmittersDetectors(num_of_emitters, alpha_angle, span, iterations, image, filtered)
         sinogram = emitter.create_sinogram()
-        reconstruction = emitter._reverse_sinogram(sinogram)
+        reconstruction = emitter.reverse_sinogram(sinogram)
         st.session_state['image'] = image
         st.session_state['sinogram'] = sinogram
         st.session_state['reconstruction'] = reconstruction
