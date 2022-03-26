@@ -1,13 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+import os
 
 from bresenham import bresenham
-from helpers import read_pixels_on_a_line
+from helpers import read_pixels_on_a_line, create_kernel
 
 
 class EmittersDetectors:
-    def __init__(self, n: int, alpha: float, span: float, iterations: int, image: np.ndarray) -> None:
+    def __init__(self, n: int, alpha: float, span: float, iterations: int, image: np.ndarray, filtered: bool=False) -> None:
         """
         Args:
             n (int): number of emitters/detectors
@@ -15,6 +16,7 @@ class EmittersDetectors:
             span (float): the range within the emitters/detectors are positioned (in degrees)
             iterations (int): number of rotations
             img (np.array): the image, should be grayscale
+            filtered (bool): whether to apply sinogram filtering or not
         """
 
         if n <= 0 or not(isinstance(n, int)):
@@ -31,6 +33,7 @@ class EmittersDetectors:
         self._height, self._width = self._img.shape
         self._alpha = alpha
         self._span = span
+        self._filtered = filtered
         self._radius = max(self._height//2, self._width//2)
         self._angles = np.arange(0, self._span, self._span/self._num)
 
@@ -120,16 +123,30 @@ class EmittersDetectors:
         """
         sinogram_rows = []
 
-        for i in range(self._iterations):
-            # print(f"Iteration: {i+1}")
-
+        for _ in range(self._iterations):
             sinogram_rows.append(self._create_sinogram_row())
             self._update_positions()
         
-        return np.array(sinogram_rows)
+        sinogram = np.array(sinogram_rows)
+
+        if self._filtered:
+            return self._filter_sinogram(sinogram)
+        return sinogram
     
 
-    def _reverse_sinogram(self, sinogram: np.ndarray) -> np.ndarray:
+    def _filter_sinogram(self, sinogram: np.ndarray) -> np.ndarray:
+        filtered_sinogram = np.zeros_like(sinogram)
+        rows = sinogram.shape[0]
+ 
+        kernel = create_kernel(length=int(self._num/20)+2)
+        
+        for i in range(rows):
+            filtered_sinogram[i, :] = np.convolve(sinogram[i, :], kernel, mode='same')
+        
+        return filtered_sinogram
+    
+
+    def reverse_sinogram(self, sinogram: np.ndarray) -> np.ndarray:
         """Create image reconstruction from a sinogram.
 
         Args:
@@ -138,31 +155,42 @@ class EmittersDetectors:
         Returns:
             np.ndarray: the reconstructed image
         """
+        parent_path = "../results"
+
+        if not os.path.isdir(parent_path):  # creating a directory for saving the results
+            os.mkdir(parent_path)
+        
+        for file in os.listdir(parent_path):  # clearing the directory
+            os.remove(f"{parent_path}/{file}")
+
         result = np.zeros_like(self._img, dtype=float)
 
         self._emitters, self._detectors = self._initialize_positions_ellipse()
 
         for iteration in range(self._iterations):
-            # print(iteration)
-
             for idx, (emitter, detector) in enumerate(zip(self._emitters, self._detectors)):
                 line = bresenham(emitter, detector)
 
                 for pos_x, pos_y in line:
-                    result[pos_x, pos_y] += sinogram[iteration, idx]
+                    result[pos_y, pos_x] += sinogram[iteration, idx]
+
+            normalized_result = 255*(result - np.percentile(result, 5))/(np.percentile(result, 95) - np.percentile(result, 5))
+            normalized_result = np.clip(normalized_result, 0, 255)
+            cv2.imwrite(f"{parent_path}/{iteration+1:03d}.jpg", normalized_result)
 
             self._update_positions()
-        
 
-        return result.T
+        normalized_result = 255*(result - np.percentile(result, 5))/(np.percentile(result, 95) - np.percentile(result, 5))
+
+        return np.clip(normalized_result, 0, 255)
 
 
 
 if __name__ == "__main__":
-    sample_file_path = "./images/Kwadraty2.jpg"
-    emitter = EmittersDetectors(n=120, alpha=2, span=120, iterations=180, image=cv2.imread(sample_file_path, cv2.IMREAD_GRAYSCALE))
+    sample_file_path = "../images/SADDLE_PE.JPG"
+    emitter = EmittersDetectors(n=180, alpha=2, span=180, iterations=int(360/2), image=cv2.imread(sample_file_path, cv2.IMREAD_GRAYSCALE), filtered=True)
     sinogram = emitter.create_sinogram()
-    reconstruction = emitter._reverse_sinogram(sinogram)
+    reconstruction = emitter.reverse_sinogram(sinogram)
 
     plt.subplot(1, 2, 1)
     plt.imshow(sinogram, cmap='gray')
