@@ -17,7 +17,6 @@ if __name__ == "__main__":
     spans_num = np.arange(45, 271, 45)
     print("Creating an empty dataframe..")
     results = pd.DataFrame(data=[], columns=["Detectors", "Iterations", "Span", "RMSE", "Group"])
-    idx = 0
 
     print("Detectors..")
     for det_num in detectors_num:
@@ -28,8 +27,8 @@ if __name__ == "__main__":
 
         rmse = mean_squared_error(img, reconstruction, squared=False)
 
-        results.loc[idx] = [det_num, iterations_num_default, span_default, rmse, "Detectors"]
-        idx += 1
+        results.loc[len(results)] = [det_num, iterations_num_default, span_default, rmse, "Detectors"]
+        
         results.to_csv("results.csv", index=False)
 
     print("Iterations..")
@@ -41,8 +40,8 @@ if __name__ == "__main__":
 
         rmse = mean_squared_error(img, reconstruction, squared=False)
 
-        results.loc[idx] = [detectors_num_default, iter_num, span_default, rmse, "Iterations"]
-        idx += 1
+        results.loc[len(results)] = [detectors_num_default, iter_num, span_default, rmse, "Iterations"]
+
         results.to_csv("results.csv", index=False)
 
     print("Spans..")
@@ -54,7 +53,7 @@ if __name__ == "__main__":
 
         rmse = mean_squared_error(img, reconstruction, squared=False)
 
-        results.loc[idx] = [detectors_num_default, iterations_num_default, span_num, rmse, "Span"]
-        idx += 1
+        results.loc[len(results)] = [detectors_num_default, iterations_num_default, span_num, rmse, "Span"]
+
         results.to_csv("results.csv", index=False)
     print("Finished !")
