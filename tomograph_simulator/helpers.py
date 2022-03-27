@@ -2,6 +2,7 @@ import numpy as np
 from pydicom.dataset import Dataset, FileDataset
 from pydicom.uid import ExplicitVRLittleEndian
 import pydicom._storage_sopclass_uids
+from pydicom.datadict import add_dict_entry
 
 from skimage.util import img_as_ubyte
 from skimage.exposure import rescale_intensity
@@ -17,6 +18,8 @@ def save_as_dicom(file_name, img, patient_data):
     img_converted = convert_image_to_ubyte(img)
     
     # Populate required values for file meta information
+    add_dict_entry(0x10021001, "DA", "ExaminationDate", "Examination Date")
+
     meta = Dataset()
     meta.MediaStorageSOPClassUID = pydicom._storage_sopclass_uids.CTImageStorage
     meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
@@ -33,8 +36,10 @@ def save_as_dicom(file_name, img, patient_data):
     
     ds.PatientName = patient_data["PatientName"]
     ds.PatientID = patient_data["PatientID"]
+    ds.PatientBirthDate = patient_data["PatientBirthDate"]
+    ds.PatientSex = patient_data["PatientSex"]
     ds.ImageComments = patient_data["ImageComments"]
-    # TODO Date Of examination and more patient info
+    ds.ExaminationDate = patient_data["ExaminationDate"]
     
 
     ds.Modality = "CT"
@@ -60,5 +65,10 @@ def save_as_dicom(file_name, img, patient_data):
     pydicom.dataset.validate_file_meta(ds.file_meta, enforce_standard=True)
 
     ds.PixelData = img_converted.tobytes()
+    print(ds.dir())
+    ds.save_as(f"../dicom_files/{file_name}", write_like_original=False)
 
-    ds.save_as(file_name, write_like_original=False)
+def read_dicom(filepath):
+    ds = pydicom.dcmread(filepath)
+    image = ds.pixel_array
+    return ds, image
