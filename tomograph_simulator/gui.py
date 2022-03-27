@@ -70,7 +70,7 @@ if image is not None and sinogram is not None and reconstruction is not None:
         st.write('## Reconstruction iterations')
         form2 = st.form(key="Iteration form")
         display_iteration = form2.slider("Iteration no.", 1, last_set_iterations, 1)
-        submit_button2 = form2.form_submit_button(label="Change itteration")
+        submit_button2 = form2.form_submit_button(label="Change iteration")
         reconstruction_iteration = cv2.imread(f"../results/{display_iteration:03d}.jpg", cv2.IMREAD_GRAYSCALE)
         st.write('## Reconstruction Image')
         st.image(reconstruction_iteration, caption=f"Iteration {display_iteration}")
