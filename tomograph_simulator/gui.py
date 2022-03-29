@@ -13,16 +13,11 @@ form1 = st.sidebar.form(key='main_data')
 
 files = glob.glob('../images/*')
 filename = form1.selectbox('Filename', files)
-num_of_emitters = form1.number_input('Number of emitters', 1, 150, 50)
-alpha_angle = form1.number_input('Angle', 1, 20, 1)
-span = form1.number_input('Span', 1, 180, 15)
-filtered = form1.checkbox("Filter", False)
-full_rotation = form1.checkbox("Full rotation (360 degrees)", True)
-
-if not full_rotation:
-    iterations = form1.number_input('Number of iterations', 1, 100, 60)
-else:
-    iterations = int(360/alpha_angle)
+num_of_emitters = form1.number_input('Number of emitters', min_value=50, max_value=360, value=50, step=5)
+# alpha_angle = form1.number_input('Angle', 1, 20, 1)
+span = form1.number_input('Span', 60, 270, 60)
+filtered = form1.checkbox("Filter", True)
+iterations = form1.number_input('Number of iterations', 60, 720, 360)
 
 show_all_iterations = form1.checkbox("Show all iterations", True)
 
@@ -36,7 +31,7 @@ submit_button1 = form1.form_submit_button(label='Run simulation')
 if submit_button1:
     with st.spinner("Simulation is running..."):
         image = cv2.imread(filename, cv2.IMREAD_GRAYSCALE)
-        emitter = EmittersDetectors(num_of_emitters, alpha_angle, span, iterations, image, filtered)
+        emitter = EmittersDetectors(num_of_emitters, 360/iterations, span, iterations, image, filtered)
         sinogram = emitter.create_sinogram()
         reconstruction = emitter.reverse_sinogram(sinogram)
         st.session_state['image'] = image
@@ -61,15 +56,15 @@ if image is not None and sinogram is not None and reconstruction is not None:
         col2.write('## Sinogram')
         col2.pyplot(fig2)
 
-    if not show_all_iterations:
         fig3, ax3 = plt.subplots()
         ax3.imshow(reconstruction, cmap="gray")
         st.write('## Reconstruction Image')
         st.pyplot(fig3)
-    else:
+
+    if show_all_iterations:
         st.write('## Reconstruction iterations')
         form2 = st.form(key="Iteration form")
-        display_iteration = form2.slider("Iteration no.", 1, last_set_iterations, 1)
+        display_iteration = form2.slider("Iteration no.", 1, int(last_set_iterations), 1)
         submit_button2 = form2.form_submit_button(label="Change iteration")
         reconstruction_iteration = cv2.imread(f"../results/{display_iteration:03d}.jpg", cv2.IMREAD_GRAYSCALE)
         st.write('## Reconstruction Image')
@@ -117,9 +112,9 @@ if patient_read:
     st.write(f"##  Patient data from *{filename}*")
     st.write(f"#### Patient ID: *{ds.PatientID}*")
     st.write(f"#### Patient Name: *{ds.PatientName}*")
-    st.write(f"#### Patient Birth Date: *{ds.PatientBirthDate}*")
+    st.write(f"#### Patient Birth Date: *{ds.PatientBirthDate[:4]}-{ds.PatientBirthDate[4:6]}-{ds.PatientBirthDate[6:]}*")
     st.write(f"#### Patient Sex: *{ds.PatientSex}*")
     if "ExaminationDate" in ds:
-        st.write(f"#### Examination Date: *{ds.ExaminationDate}*")
+        st.write(f"#### Examination Date: *{ds.ExaminationDate[:4]}-{ds.ExaminationDate[4:6]}-{ds.ExaminationDate[6:]}*")
     st.image(patient_image, "Patient Tomograph Image")
     st.write(f"#### Image notes: *{ds.ImageComments}*")
