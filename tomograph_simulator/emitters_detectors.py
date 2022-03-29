@@ -19,12 +19,12 @@ class EmittersDetectors:
             filtered (bool): whether to apply sinogram filtering or not
         """
 
-        if n <= 0 or not(isinstance(n, int)):
-            raise Exception("The number of emitters/detectors should be a positive integer")
+        # if n <= 0 or not(isinstance(n, int)):
+        #     raise Exception("The number of emitters/detectors should be a positive integer")
         if len(image.shape) != 2:
             raise Exception("The image should be grayscale")
-        if iterations <= 0 or not(isinstance(iterations, int)):
-            raise Exception("The number of iterations should be a positive integer")
+        # if iterations <= 0 or not(isinstance(iterations, int)):
+        #     raise Exception("The number of iterations should be a positive integer")
 
 
         self._img = image
